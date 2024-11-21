@@ -9,7 +9,7 @@
 </head>
 
 <body>
-    <div class="container">
+    <div id="firstScreen" class="container">
         <div class="form-container">
             <div class="logo">
                 <img src="img/logo.jpg" alt="Logo">
@@ -27,9 +27,12 @@
                     <img id="profileImagePreview" src="img/default-profile.jpg" alt="Profile Image">
                 </div>
 
-                <button onclick="saveUserDetails()">Start</button>
+                <button onclick="saveUserDetails(event)">Start</button>
             </form>
         </div>
+    </div>
+    <div id="secondScreen" class="container">
+        <h1>Test Second Screen</h1>
     </div>
     <script src="script.js"></script>
 </body>
