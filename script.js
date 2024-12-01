@@ -453,19 +453,180 @@ function generateBoxelement(headings, content) {
 
         const nextbutton = document.createElement('button');
         nextbutton.textContent = 'Next';
-        nextbutton.addEventListener('click', function () { buildAbilityPage() });
+        nextbutton.addEventListener('click', function () {
+            loggedInUser.setUserRaceDetails(raceDetails);
+            buildAbilityPage();
+        });
         raceDetailScreen.appendChild(nextbutton);
     }
 }
 
 // Ability Scores Screen Code.
 {
+    const abilities = [{ key: "CON", value: 0, count: 0 }, { key: "CHA", value: 0, count: 0 }, { key: "STR", value: 0, count: 0 }, { key: "INT", value: 0, count: 0 }, { key: "WIS", value: 0, count: 0 }, { key: "DEX", value: 0, count: 0 }];
+
     function buildAbilityPage() {
         document.getElementsByClassName('userclass')[3].textContent = `${loggedInUser.userClassName} - ${loggedInUser.userRaceName}`;
         document.getElementsByClassName("userNameHeader")[4].textContent = loggedInUser.userName;
         document.getElementsByClassName('profileImagePreview')[5].src = loggedInUser.profilePicture;
         document.getElementById("raceDetailScreen").style.display = "none";
         document.getElementById("abilityScreen").style.display = "block";
+
+        let container = document.getElementById("abilityScreen");
+
+        const gems = document.createElement("div");
+        const gemValue = document.createElement("span");
+        gemValue.id = "gemsCount";
+        gemValue.textContent = "1500";
+        gems.appendChild(gemValue);
+        gems.innerHTML += " gems";
+        container.appendChild(gems);
+
+        // Ability Scores Section
+        const abilityScoresSection = document.createElement("div");
+        abilityScoresSection.className = "contentContainer";
+
+        const abilityScores = document.createElement("div");
+        abilityScores.className = "ability-scores";
+
+        abilities.forEach((ability) => {
+            const scoreRow = document.createElement("div");
+            scoreRow.className = "score-row";
+
+            const select = document.createElement("select");
+            select.className = "ability-select";
+            const option = document.createElement("option");
+            option.textContent = ability.key;
+            select.appendChild(option);
+
+            const rollBtn = document.createElement("button");
+            rollBtn.id = ability.key;
+            rollBtn.className = "roll-btn";
+            rollBtn.textContent = "Roll";
+
+            const rollValues = document.createElement("div");
+            rollValues.className = "roll-values";
+
+            const scoreInput = document.createElement("input");
+            scoreInput.className = "score-input";
+            scoreInput.type = "text";
+            scoreInput.value = "0";
+            scoreInput.readOnly = true;
+
+            scoreRow.appendChild(select);
+            scoreRow.appendChild(rollBtn);
+            scoreRow.appendChild(rollValues);
+            scoreRow.appendChild(scoreInput);
+
+            abilityScores.appendChild(scoreRow);
+
+            // Add rolling functionality
+            rollBtn.addEventListener("click", function () {
+
+                let abilityCount;
+                let btnID = this.id;
+                abilityCount = abilities.filter(ability => ability.key === btnID)[0].count + 1;
+
+                let gemsCount = parseInt(document.getElementById("gemsCount").textContent);
+                if (abilityCount === 2) {
+                    gemsCount -= 50;
+                } else if (abilityCount === 3) {
+                    gemsCount -= 100;
+                } else if (abilityCount === 4) {
+                    gemsCount -= 200;
+                } else if (abilityCount >= 5) {
+                    gemsCount -= 500;
+                }
+
+                if (gemsCount >= 0) {
+                    document.getElementById("gemsCount").textContent = gemsCount;
+
+                    const rolls = [Math.ceil(Math.random() * 6), Math.ceil(Math.random() * 6), Math.ceil(Math.random() * 6), Math.ceil(Math.random() * 6)];
+                    rollValues.textContent = rolls.join(" | ");
+
+                    // Ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort
+                    rolls.sort((a, b) => b - a)
+                    let score = 0;
+                    // Add the top 3 rolls.
+                    for (let i = 0; i < 3; i++) {
+                        score += rolls[i];
+                    }
+                    scoreInput.value = score;
+                    abilities.forEach(function (ability) {
+                        if (ability.key === btnID) {
+                            ability.value = score;
+                            abilityCount = ++ability.count;
+                        }
+                    });
+                } else {
+                    alert("Insufficient Gems!!!")
+                }
+            });
+        });
+
+        abilityScoresSection.appendChild(abilityScores);
+        container.appendChild(abilityScoresSection);
+
+        // Ability Score Increases Section
+        const scoreIncreaseSection = document.createElement("div");
+        scoreIncreaseSection.className = "score-increase-section";
+
+        const increaseTitle = document.createElement("h3");
+        increaseTitle.textContent = "Ability Score Increases";
+
+        const scoreIncreaseSelect = document.createElement("select");
+        scoreIncreaseSelect.className = "score-increase-select";
+        let increaseOption = document.createElement("option");
+        increaseOption.textContent = "Increase 3 scores (+1/+1/+1)";
+        increaseOption.value = "3";
+        scoreIncreaseSelect.appendChild(increaseOption);
+        let increaseOption2 = document.createElement("option");
+        increaseOption2.textContent = " Increase 2 scores (+2/+1)";
+        increaseOption2.value = "2";
+        scoreIncreaseSelect.appendChild(increaseOption2);
+
+        scoreIncreaseSection.appendChild(increaseTitle);
+        scoreIncreaseSection.appendChild(scoreIncreaseSelect);
+        container.appendChild(scoreIncreaseSection);
+
+        const nextbutton = document.createElement('button');
+        nextbutton.textContent = 'Next';
+        nextbutton.addEventListener('click', function () {
+            // loggedInUser.setUserRaceDetails(raceDetails);
+            // buildAbilityPage();
+            document.getElementById("abilityScreen").style.display = "none";
+            document.getElementById("characterSheet").style.display = "block";
+        });
+
+        container.appendChild(nextbutton);
+
+        scoreIncreaseSection.querySelectorAll("select").forEach((dropdown) => {
+            dropdown.addEventListener("change", function () {
+                document.getElementsByClassName("increase-scores")[0].remove();
+                bindIncreaseScoresAbilityOptions(parseInt(dropdown.value), scoreIncreaseSection)
+            })
+        });
+
+        // for default selaction bind the options.
+        bindIncreaseScoresAbilityOptions(3, scoreIncreaseSection);
     }
 
+    function bindIncreaseScoresAbilityOptions(count, rootElement) {
+        const increaseScores = document.createElement("div");
+        increaseScores.className = "increase-scores";
+        increaseScores.innerHTML = "";
+        for (let i = 0; i < count; i++) {
+            const select = document.createElement("select");
+            select.className = "increase-select";
+
+            abilities.forEach((ability) => {
+                const option = document.createElement("option");
+                option.textContent = ability.key;
+                select.appendChild(option);
+            });
+
+            increaseScores.appendChild(select);
+        }
+        rootElement.appendChild(increaseScores);
+    }
 }

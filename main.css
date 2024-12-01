@@ -16,7 +16,7 @@ body {
     width: 400px;
 }
 
-#classScreen, #raceScreen, #classDetailScreen, #raceDetailScreen, #abilityScreen {
+#classScreen, #raceScreen, #classDetailScreen, #raceDetailScreen, #abilityScreen, #characterSheet {
     display: none;
     width: 100% ;
     height: 100%;
@@ -176,7 +176,50 @@ h2 span {
     color: #666;
 }
 
-.container button {
-    font-size: 20px;
-    margin: 10px;
+.ability-scores {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.score-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 10px;
+}
+
+.ability-select,
+.roll-btn,
+.score-input,
+.increase-select {
+  margin-right: 10px;
+  width: 100px;
+}
+
+.score-increase-select {
+    width: fit-content;
+    margin-bottom: 10px;
+}
+
+.roll-btn {
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.score-input {
+  width: 50px;
+  text-align: center;
+  padding: 6px;
+  font-weight: bolder;
+}
+
+.roll-values {
+  width: 100px;
+  text-align: center;
+  color: #4a90e2;
+}
+
+.score-increase-section {
+  margin: 20px;
 }
