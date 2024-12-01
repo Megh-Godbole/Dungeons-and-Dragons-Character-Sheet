@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Start Screen</title>
+    <title>Project - Dungeons and Dragons Character Sheet</title>
     <link rel="stylesheet" href="main.css">
 </head>
 
@@ -24,15 +24,53 @@
 
                 <!-- Default Profile Image Placeholder -->
                 <div class="image-preview">
-                    <img id="profileImagePreview" src="img/default-profile.jpg" alt="Profile Image">
+                    <img class="profileImagePreview" src="img/default-profile.jpg" alt="Profile Image">
                 </div>
 
                 <button onclick="saveUserDetails(event)">Start</button>
             </form>
         </div>
     </div>
-    <div id="secondScreen" class="container">
-        <h1>Test Second Screen</h1>
+    <div id="classScreen" class="container">
+        <header>
+            <div class="image-preview"><img class="profileImagePreview" alt="Profile Image"></div>
+            <h3 class="userNameHeader"></h3>
+        </header>
+        <h1>Choose A Class</h1>
+        <div id="classList" class="class-list"></div>
+    </div>
+    <div id="classDetailScreen" class="container">
+        <header>
+            <div class="image-preview"><img class="profileImagePreview" alt="Profile Image"></div>
+            <h3 class="userNameHeader"></h3>
+            <h3 class="userclass"></h3>
+        </header>
+        <h1>Class Features</h1>
+    </div>
+    <div id="raceScreen" class="container">
+        <header>
+            <div class="image-preview"><img class="profileImagePreview" alt="Profile Image"></div>
+            <h3 class="userNameHeader"></h3>
+            <h3 class="userclass"></h3>
+        </header>
+        <h1>Choose A Race</h1>
+        <div id="raceList" class="race-list"></div>
+    </div>
+    <div id="raceDetailScreen" class="container">
+        <header>
+            <div class="image-preview"><img class="profileImagePreview" alt="Profile Image"></div>
+            <h3 class="userNameHeader"></h3>
+            <h3 class="userclass"></h3>
+        </header>
+        <h1>Race Feature</h1>
+    </div>
+    <div id="abilityScreen" class="container">
+        <header>
+            <div class="image-preview"><img class="profileImagePreview" alt="Profile Image"></div>
+            <h3 class="userNameHeader"></h3>
+            <h3 class="userclass"></h3>
+        </header>
+        <h1>Ability Scores</h1>
     </div>
     <script src="script.js"></script>
 </body>
