@@ -6,25 +6,19 @@ const GENERIC_NETWORK_ERROR = "Network Error. Please try again later.";
 // Global Properties.
 let loggedInUser = null;
 
-// Public Class.
+// Public Classes.
 class user {
     constructor(userName, profilePicture) {
         this.userName = userName;
         this.profilePicture = profilePicture;
-        this.userClassName = null;
-        this.classDetails = null;
-        this.selectedSkills = null;
-        this.userRaceName = null;
-        this.userRaceDetails = null;
     }
 
     setUserClassName = function (userClassName) {
         this.userClassName = userClassName;
     }
 
-    setUserClassDetail = function (classDetails, selectedSkills) {
-        this.classDetails = classDetails;
-        this.selectedSkills = selectedSkills;
+    setUserClassDetails = function (classDetail) {
+        this.classDetail = classDetail;
     }
 
     setUserRaceName = function (userRaceName) {
@@ -34,9 +28,92 @@ class user {
     setUserRaceDetails = function (userRaceDetails) {
         this.userRaceDetails = userRaceDetails;
     }
+
+    setAbillityDetails = function (userAbilityDetails) {
+        this.userAbilityDetails = userAbilityDetails;
+    }
 };
 
 // Generic functions.
+
+function switchScreen(screen) {
+    // Reference: https://www.w3schools.com/js/js_switch.asp
+    switch (screen) {
+        case 1:
+            getClasses();
+            document.getElementById("firstScreen").remove();
+            break;
+        case 2:
+            document.getElementById("classScreen").remove();
+            break;
+        case 3:
+            getRaces();
+            document.getElementById("classDetailScreen").remove();
+            break;
+        case 4:
+            document.getElementById("raceScreen").remove();
+            break;
+        case 5:
+            document.getElementById("raceDetailScreen").remove();
+            buildAbilityPage();
+            break;
+        case 6:
+            document.getElementById("abilityScreen").remove();
+            buildCharacterSheet();
+            break;
+        default:
+            break;
+    }
+}
+
+function createHeader(id, heading, isRaceList) {
+    const container = document.createElement('div');
+    container.id = id;
+    container.className = "container";
+
+    // Create header section
+    const header = document.createElement('header');
+    const imagePreviewDiv = document.createElement('div');
+    imagePreviewDiv.className = "image-preview";
+    const profileImg = document.createElement('img');
+    profileImg.className = "profileImagePreview";
+    profileImg.alt = "Profile Image";
+    profileImg.src = loggedInUser.profilePicture;
+    imagePreviewDiv.appendChild(profileImg);
+    const userNameHeader = document.createElement('h3');
+    userNameHeader.className = "userNameHeader";
+    userNameHeader.textContent = loggedInUser.userName
+
+    // Append image preview and username header to the header
+    header.appendChild(imagePreviewDiv);
+    header.appendChild(userNameHeader);
+
+    // Add class name if exsist.
+    if (loggedInUser.userClassName) {
+        const userClassHeader = document.createElement('h3');
+        userClassHeader.className = "userclass";
+        userClassHeader.textContent = loggedInUser.userClassName;
+        userClassHeader.textContent += loggedInUser.userRaceName ? ` - ${loggedInUser.userRaceName}` : '';
+        header.appendChild(userClassHeader);
+    }
+
+    // Create main heading
+    const mainHeading = document.createElement('h1');
+    mainHeading.textContent = heading;
+
+    // Create class list container
+    const classList = document.createElement('div');
+    classList.id = isRaceList ? "raceList" : "classList";
+    classList.className = isRaceList ? "race-list" : "class-list";
+
+    // Append all elements to the container
+    container.appendChild(header);
+    container.appendChild(mainHeading);
+    container.appendChild(classList);
+
+    return container;
+}
+
 function generateBoxelement(headings, content) {
     const box = document.createElement('div');
     box.className = 'content-box';
@@ -47,7 +124,11 @@ function generateBoxelement(headings, content) {
 
     // Create the paragraph
     const paragraph = document.createElement('p');
-    paragraph.textContent = content;
+    if (headings === 'Traits:') {
+        paragraph.innerHTML = content
+    } else {
+        paragraph.textContent = content;
+    }
 
     // Append heading and paragraph to the box
     box.appendChild(heading);
@@ -58,6 +139,86 @@ function generateBoxelement(headings, content) {
 
 // First Screen Code.
 {
+    let imageObjectURL;
+    // Creat and load the first screen.
+    function loadFirstScreen() {
+
+        const container = document.createElement('div');
+        container.id = "firstScreen";
+        container.className = "container";
+
+        const logoDiv = document.createElement('div');
+        logoDiv.className = "logo";
+        const logoImg = document.createElement('img');
+        logoImg.src = "img/logo.jpg";
+        logoImg.alt = "Logo";
+        logoDiv.appendChild(logoImg);
+
+        const heading = document.createElement('h1');
+        heading.textContent = "Enter Your Details";
+
+        const form = document.createElement('form');
+
+        // User Name.
+        const usernameLabel = document.createElement('label');
+        usernameLabel.setAttribute('for', 'username');
+        usernameLabel.textContent = "Choose a Name:";
+        const usernameInput = document.createElement('input');
+        usernameInput.type = "text";
+        usernameInput.id = "username";
+        usernameInput.name = "username";
+        usernameInput.placeholder = "Enter your name";
+
+        // Profile Picture.
+        const profileLabel = document.createElement('label');
+        profileLabel.setAttribute('for', 'profilePicture');
+        profileLabel.textContent = "Upload Profile Picture:";
+        const profileInput = document.createElement('input');
+        profileInput.type = "file";
+        profileInput.id = "profilePicture";
+        profileInput.name = "profilePicture";
+        profileInput.accept = "image/*";
+
+        // profile Picture Preview.
+        const imagePreviewDiv = document.createElement('div');
+        imagePreviewDiv.className = "image-preview";
+        const imagePreview = document.createElement('img');
+        imagePreview.className = "profileImagePreview";
+        imagePreview.src = "img/default-profile.jpg";
+        imagePreview.alt = "Profile Image";
+        imagePreviewDiv.appendChild(imagePreview);
+
+        // Add preview after selection image.
+        profileInput.addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                // Reference: https://www.geeksforgeeks.org/html-dom-createobjecturl-method/
+                imagePreview.src = imageObjectURL = URL.createObjectURL(file);
+            }
+        });
+
+        // Start button.
+        const startButton = document.createElement('button');
+        startButton.textContent = "Start";
+        startButton.onclick = saveUserDetails;
+
+        // Add elements to the form.
+        form.appendChild(usernameLabel);
+        form.appendChild(usernameInput);
+        form.appendChild(profileLabel);
+        form.appendChild(profileInput);
+        form.appendChild(imagePreviewDiv);
+        form.appendChild(startButton);
+
+        // Add elements to the container.
+        container.appendChild(logoDiv);
+        container.appendChild(heading);
+        container.appendChild(form);
+
+        // Append coontainer to body.
+        document.body.appendChild(container);
+    }
+
     // On start click.
     function saveUserDetails(event) {
         event.preventDefault();
@@ -67,11 +228,9 @@ function generateBoxelement(headings, content) {
         let profilePicture = document.getElementById("profilePicture").files[0];
 
         // If no errors, allow the form to be submitted.
-        if (validateUserName(userName) && validateProfilePicture(profilePicture)) {
-            document.getElementById("firstScreen").style.display = "none";
-            document.getElementById("classScreen").style.display = "block";
-            loggedInUser = new user(userName, document.getElementsByClassName('profileImagePreview')[0].src);
-            buildClassesPage();
+        if (validateUserName(userName) && validateProfilePicture(profilePicture) && imageObjectURL) {
+            loggedInUser = new user(userName, imageObjectURL);
+            switchScreen(1);
         }
     };
 
@@ -100,47 +259,26 @@ function generateBoxelement(headings, content) {
             return true;
         }
     };
-
-    // Show image preview when the user selects a profile picture.
-    document.getElementById('profilePicture').addEventListener('change', function (event) {
-        const file = event.target.files[0];
-        const imagePreview = document.getElementsByClassName('profileImagePreview')[0];
-
-        if (file) {
-            imagePreview.src = URL.createObjectURL(file);
-            // Reference: https://www.geeksforgeeks.org/html-dom-createobjecturl-method/
-        }
-    });
 }
 
 // Class Screen Code.
 {
-    function buildClassesPage() {
-        document.getElementsByClassName("userNameHeader")[0].textContent = loggedInUser.userName;
-        document.getElementsByClassName('profileImagePreview')[1].src = loggedInUser.profilePicture;
-        getClasses();
-    }
-
-    // 
     function getClasses() {
-        let xhr = new XMLHttpRequest();
-        xhr.responseType = "json";
-        xhr.open("GET", `${BASE_DND_URL}/classes`, true);
-        xhr.onload = function () {
-            if (xhr.status === 200) {
-                let classes = xhr.response;
-                renderClasses(classes)
-            } else {
-                alert("Error fetching classes data.");
-            }
-        };
-        xhr.onerror = function () {
-            alert(GENERIC_NETWORK_ERROR)
-        };
-        xhr.send();
+        fetch(`${BASE_DND_URL}/classes`)
+            .then((response) => {
+                return response.json();
+            })
+            .then((classes) => {
+                document.body.appendChild(createHeader('classScreen', 'Choose A Class'));
+                renderClasses(classes);
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                alert(error.message || GENERIC_NETWORK_ERROR);
+            });
     }
 
-    // Function to render class cards
+    // Function to render class cards.
     function renderClasses(classes) {
         const classList = document.getElementById('classList');
 
@@ -149,14 +287,23 @@ function generateBoxelement(headings, content) {
             card.className = 'card';
             classData.image = `img/classes/Class Icon - ${classData.name}.svg`;
 
-            // Set the inner HTML of the card
-            card.innerHTML = `<img src="${classData.image || 'default-class.jpg'}" alt="${classData.name}"><h2>${classData.name}</h2>`;
+            // Class Images.
+            const img = document.createElement("img");
+            img.src = classData.image;
+            img.alt = classData.name;
+
+            // Class Names.
+            const heading = document.createElement("h2");
+            heading.textContent = classData.name;
+
+            // Append the elements to the card
+            card.appendChild(img);
+            card.appendChild(heading);
 
             // Add a click event to redirect to the details page
             card.addEventListener('click', () => {
-                document.getElementById("classScreen").style.display = "none";
-                document.getElementById("classDetailScreen").style.display = "block";
-                buildClassDetailsPage(classData.index);
+                switchScreen(2);
+                getClassDetails(classData.index);
             });
 
             // Append the card to the class list
@@ -168,32 +315,24 @@ function generateBoxelement(headings, content) {
 // Class Details Screen Code.
 {
     const selectedSkills = [];
+    let classDetail = {};
     let skillCount = 0;
 
-    function buildClassDetailsPage(classID) {
-        document.getElementsByClassName("userNameHeader")[1].textContent = loggedInUser.userName;
-        document.getElementsByClassName('profileImagePreview')[2].src = loggedInUser.profilePicture;
-        getClassDetails(classID);
-    }
-
     function getClassDetails(classID) {
-        let xhr = new XMLHttpRequest();
-        xhr.responseType = "json";
-        xhr.open("GET", `${BASE_DND_URL}/classes/${classID}`, true);
-        xhr.onload = function () {
-            if (xhr.status === 200) {
-                let classDetails = xhr.response;
+
+        fetch(`${BASE_DND_URL}/classes/${classID}`)
+            .then((response) => {
+                return response.json();
+            })
+            .then((classDetails) => {
                 loggedInUser.setUserClassName(classDetails.name);
-                document.getElementsByClassName('userclass')[0].textContent = loggedInUser.userClassName;
+                document.body.appendChild(createHeader('classDetailScreen', 'Class Features'));
                 renderClassDetails(classDetails);
-            } else {
-                alert("Error fetching class detail data.");
-            }
-        };
-        xhr.onerror = function () {
-            alert(GENERIC_NETWORK_ERROR)
-        };
-        xhr.send();
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                alert(error.message || GENERIC_NETWORK_ERROR);
+            });
     }
 
     function renderClassDetails(classDetails) {
@@ -207,12 +346,15 @@ function generateBoxelement(headings, content) {
         hitDie.textContent = classDetails.hit_die;
         hitDieTag.appendChild(hitDie);
         container.appendChild(hitDieTag);
+        classDetail.hitDie = classDetails.hit_die;
 
         let weaponsAndArmorTag = document.createElement('h2');
         let weaponsAndArmor = document.createElement('span');
         weaponsAndArmorTag.textContent = 'Weapons and Armors: ';
+        classDetail.weaponsAndArmor = [];
         for (let i = 0; i < classDetails.proficiencies.length; i++) {
             weaponsAndArmor.textContent += `${classDetails.proficiencies[i].name}${(i === classDetails.proficiencies.length - 1) ? '' : ', '}`;
+            classDetail.weaponsAndArmor.push(classDetails.proficiencies[i].name);
         }
         weaponsAndArmorTag.appendChild(weaponsAndArmor);
         container.appendChild(weaponsAndArmorTag);
@@ -299,27 +441,7 @@ function generateBoxelement(headings, content) {
             spellContainer = document.createElement('div');
             spellContainer.className = 'contentContainer';
             classDetails.spellcasting.info.forEach(function (info) {
-
-                const box = document.createElement('div');
-                box.className = 'content-box';
-
-                // Create the heading
-                const heading = document.createElement('h2');
-                heading.textContent = info.name;
-
-                // Create the paragraph
-                const paragraph = document.createElement('p');
-                info.desc.forEach(function (desc) {
-                    paragraph.textContent += `${desc} `;
-                });
-
-                // Append heading and paragraph to the box
-                box.appendChild(heading);
-                box.appendChild(paragraph);
-
-                // Append the box to the container
-                spellContainer.appendChild(box);
-
+                spellContainer.appendChild(generateBoxelement(info.name, info.desc.map(desc => `${desc} `).join('')));
             });
             classDetailScreen.appendChild(spellContainer);
         }
@@ -327,102 +449,84 @@ function generateBoxelement(headings, content) {
         nextbutton.textContent = 'Next';
         nextbutton.addEventListener('click', function () {
             if (selectedSkills.length === skillCount) {
-                document.getElementById("classDetailScreen").style.display = "none";
-                document.getElementById("raceScreen").style.display = "block";
-                loggedInUser.setUserClassDetail(classDetails, selectedSkills);
-                buildRacesPage();
+                classDetail.selectedSkills = selectedSkills;
+                loggedInUser.setUserClassDetails(classDetail);
+                switchScreen(3);
             } else {
                 alert("Select all skill drop-downs.");
-                console.log(selectedSkills);
-                console.log(skillCount);
             }
         });
         classDetailScreen.appendChild(nextbutton);
-
-
     }
 }
 
 // Race Screen Code.
 {
-    function buildRacesPage() {
-        document.getElementsByClassName('userclass')[1].textContent = `${loggedInUser.userClassName}`;
-        document.getElementsByClassName("userNameHeader")[2].textContent = loggedInUser.userName;
-        document.getElementsByClassName('profileImagePreview')[3].src = loggedInUser.profilePicture;
-        getRaces();
-    }
-
-    // 
     function getRaces() {
-        let xhr = new XMLHttpRequest();
-        xhr.responseType = "json";
-        xhr.open("GET", `${BASE_DND_URL}/races`, true);
-        xhr.onload = function () {
-            if (xhr.status === 200) {
-                let races = xhr.response;
+        fetch(`${BASE_DND_URL}/races`)
+            .then((response) => {
+                return response.json();
+            })
+            .then((races) => {
+                document.body.appendChild(createHeader('raceScreen', 'Choose A Class', true));
                 renderRaces(races);
-            } else {
-                alert("Error fetching races data.");
-            }
-        };
-        xhr.onerror = function () {
-            alert(GENERIC_NETWORK_ERROR)
-        };
-        xhr.send();
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                alert(error.message || GENERIC_NETWORK_ERROR);
+            });
     }
 
-    // Function to render class cards
     function renderRaces(races) {
-        const classList = document.getElementById('raceList');
+        const raceList = document.getElementById('raceList');
 
         races.results.forEach((racesData) => {
             const card = document.createElement('div');
             card.className = 'card';
             racesData.image = `img/races/${racesData.name}.jpg`;
 
-            // Set the inner HTML of the card
-            card.innerHTML = `<img src="${racesData.image || 'default-class.jpg'}" alt="${racesData.name}"><h2>${racesData.name}</h2>`;
+            // Class Images.
+            const img = document.createElement("img");
+            img.src = racesData.image;
+            img.alt = racesData.name;
+
+            // Class Names.
+            const heading = document.createElement("h2");
+            heading.textContent = racesData.name;
+
+            // Append the elements to the card
+            card.appendChild(img);
+            card.appendChild(heading);
 
             // Add a click event to redirect to the details page
             card.addEventListener('click', () => {
-                document.getElementById("raceScreen").style.display = "none";
-                document.getElementById("raceDetailScreen").style.display = "block";
-                buildRaceDetailsPage(racesData.index);
+                getRaceDetails(racesData.index);
+                switchScreen(4);
             });
 
             // Append the card to the class list
-            classList.appendChild(card);
+            raceList.appendChild(card);
         });
     }
 }
 
 // Race Details Screen Code.
 {
-    function buildRaceDetailsPage(raceId) {
-        document.getElementsByClassName("userNameHeader")[3].textContent = loggedInUser.userName;
-        document.getElementsByClassName('profileImagePreview')[4].src = loggedInUser.profilePicture;
-        getRaces(raceId);
-    }
-
-    function getRaces(raceId) {
-        let xhr = new XMLHttpRequest();
-        xhr.responseType = "json";
-        xhr.open("GET", `${BASE_DND_URL}/races/${raceId}`, true);
-        xhr.onload = function () {
-            if (xhr.status === 200) {
-                let raceDetails = xhr.response;
+    let raceDetail = {};
+    function getRaceDetails(raceId) {
+        fetch(`${BASE_DND_URL}/races/${raceId}`)
+            .then((response) => {
+                return response.json();
+            })
+            .then((raceDetails) => {
                 loggedInUser.setUserRaceName(raceDetails.name);
-                document.getElementsByClassName('userclass')[2].textContent = `${loggedInUser.userClassName} - ${loggedInUser.userRaceName}`;
+                document.body.appendChild(createHeader('raceDetailScreen', 'Race Feature'));
                 renderRaceDetails(raceDetails);
-                console.log(raceDetails);
-            } else {
-                alert("Error fetching class detail data.");
-            }
-        };
-        xhr.onerror = function () {
-            alert(GENERIC_NETWORK_ERROR)
-        };
-        xhr.send();
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                alert(error.message || GENERIC_NETWORK_ERROR);
+            });
     }
 
     function renderRaceDetails(raceDetails) {
@@ -436,26 +540,46 @@ function generateBoxelement(headings, content) {
         speed.textContent = raceDetails.speed;
         speedTaf.appendChild(speed);
         container.appendChild(speedTaf);
+        raceDetail.speed = raceDetails.speed;
 
         raceDetailScreen.appendChild(container);
 
         let spellContainer = document.createElement('div');
         spellContainer.appendChild(generateBoxelement(`Size: ${raceDetails.size}`, raceDetails.size_description));
+        raceDetail.size = raceDetails.size;
         spellContainer.appendChild(generateBoxelement('Age:', raceDetails.age));
-        let traitsContent;
-        raceDetails.traits.forEach(function (trait) {
-            const brTag = document.createElement('br');
-            traitsContent += (trait.Name + brTag)
+        raceDetail.age = raceDetails.age;
+
+        raceDetail.traits = [];
+        const traitPromises = raceDetails.traits.map(trait => {
+            return fetch(`${BASE_DND_URL}/traits/${trait.index}`)
+                .then(response => response.json())
+                .then(traitDetails => {
+                    raceDetail.traits[trait.name] = traitDetails.desc.join(' ');
+                    return `<strong>${trait.name}</strong> <br>${traitDetails.desc.join(' ')}`;
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    alert(error.message || GENERIC_NETWORK_ERROR);
+                    return ""; // Return an empty string if there's an error
+                });
         });
-        spellContainer.appendChild(generateBoxelement('Traits:', traitsContent));
-        spellContainer.appendChild(generateBoxelement(`Languages: ${raceDetails.languages.map(language => language.name).toString()}`, traitsContent));
+
+        Promise.all(traitPromises)
+            .then(traitsArray => {
+                const traitsContent = traitsArray.join('<br><br>');
+                spellContainer.appendChild(generateBoxelement('Traits:', traitsContent));
+            });
+
+        spellContainer.appendChild(generateBoxelement(`Languages: ${raceDetails.languages.map(language => language.name).toString()}`, raceDetails.language_desc));
+        raceDetail.languages = raceDetails.languages.map(language => language.name);
         raceDetailScreen.appendChild(spellContainer);
 
         const nextbutton = document.createElement('button');
         nextbutton.textContent = 'Next';
         nextbutton.addEventListener('click', function () {
-            loggedInUser.setUserRaceDetails(raceDetails);
-            buildAbilityPage();
+            loggedInUser.setUserRaceDetails(raceDetail);
+            switchScreen(5);
         });
         raceDetailScreen.appendChild(nextbutton);
     }
@@ -464,14 +588,11 @@ function generateBoxelement(headings, content) {
 // Ability Scores Screen Code.
 {
     const abilities = [{ key: "CON", value: 0, count: 0 }, { key: "CHA", value: 0, count: 0 }, { key: "STR", value: 0, count: 0 }, { key: "INT", value: 0, count: 0 }, { key: "WIS", value: 0, count: 0 }, { key: "DEX", value: 0, count: 0 }];
+    const aditionalAbilities = [];
 
     function buildAbilityPage() {
-        document.getElementsByClassName('userclass')[3].textContent = `${loggedInUser.userClassName} - ${loggedInUser.userRaceName}`;
-        document.getElementsByClassName("userNameHeader")[4].textContent = loggedInUser.userName;
-        document.getElementsByClassName('profileImagePreview')[5].src = loggedInUser.profilePicture;
-        document.getElementById("raceDetailScreen").style.display = "none";
-        document.getElementById("abilityScreen").style.display = "block";
 
+        document.body.appendChild(createHeader('abilityScreen', 'Ability Scores'));
         let container = document.getElementById("abilityScreen");
 
         const gems = document.createElement("div");
@@ -592,10 +713,17 @@ function generateBoxelement(headings, content) {
         const nextbutton = document.createElement('button');
         nextbutton.textContent = 'Next';
         nextbutton.addEventListener('click', function () {
-            // loggedInUser.setUserRaceDetails(raceDetails);
-            // buildAbilityPage();
-            document.getElementById("abilityScreen").style.display = "none";
-            document.getElementById("characterSheet").style.display = "block";
+            if (abilities.map(ability => ability.count > 0).length === abilities.length) {
+                let increaseScore = document.getElementsByClassName("increase-select");
+                for (let i = 0; i < increaseScore.length; i++) {
+                    let finalScore = (i === 0 && increaseScore.length === 2) ? 2 : 1;
+                    aditionalAbilities.push({ ability: increaseScore[i].value, score: finalScore });
+                }
+                loggedInUser.setAbillityDetails({ abilities: abilities, aditionalAbilities: aditionalAbilities });
+                switchScreen(6);
+            } else {
+                alert("Please roll all the dice.");
+            }
         });
 
         container.appendChild(nextbutton);
@@ -630,3 +758,79 @@ function generateBoxelement(headings, content) {
         rootElement.appendChild(increaseScores);
     }
 }
+
+// Character Sheet Screen Code
+{
+    function buildCharacterSheet() {
+        console.log(loggedInUser);
+
+        document.body.appendChild(createHeader('characterSheet', 'D&D Beyond - Character Sheet'));
+
+        // Main Container
+        const container = document.getElementById("characterSheet");
+
+        const userClassName = document.createElement("h3");
+        userClassName.textContent = `Class: ${loggedInUser.userClassName}`;
+
+        const classDetails = document.createElement("div");
+        classDetails.innerHTML = `| <strong>Hit-Die:</strong> ${loggedInUser.classDetail.hitDie}`;
+        classDetails.innerHTML += ` | <strong>Selected Skills:</strong> ${loggedInUser.classDetail.selectedSkills.map(skill => skill.index.split('-')[1])}`;
+        classDetails.innerHTML += ` | <strong>Weapons & Armors:</strong> ${loggedInUser.classDetail.weaponsAndArmor.toString()} |`;
+
+        const userRaceName = document.createElement("h3");
+        userRaceName.textContent = `Race: ${loggedInUser.userRaceName}`;
+
+        const raceDetails = document.createElement("div");
+        raceDetails.innerHTML = `| <strong>Speed:</strong> ${loggedInUser.userRaceDetails.speed}`;
+        raceDetails.innerHTML += `| <strong>Size:</strong> ${loggedInUser.userRaceDetails.size}`;
+        raceDetails.innerHTML += `| <strong>Age:</strong> ${loggedInUser.userRaceDetails.age}`;
+
+        raceDetails.innerHTML += ` | <strong>Languages:</strong> ${loggedInUser.userRaceDetails.languages.toString()} |`;
+
+        // Abilities Section
+        const abilitiesSection = document.createElement("div");
+
+        const abilitiesTitle = document.createElement("h3");
+        abilitiesTitle.textContent = "Abilities";
+
+        const abilityItem = document.createElement("p");
+        abilityItem.textContent = '| '
+
+        loggedInUser.userAbilityDetails.abilities.forEach((ability) => {
+            abilityItem.textContent += `${ability.key}: ${ability.value} | `;
+        });
+
+        abilitiesSection.appendChild(abilitiesTitle);
+        abilitiesSection.appendChild(abilityItem);
+
+        // Additional Abilities Section
+        const additionalAbilitiesSection = document.createElement("div");
+
+        const additionalAbilitiesTitle = document.createElement("h3");
+        additionalAbilitiesTitle.textContent = "Additional Abilities";
+
+        const additionalAbilityItem = document.createElement("p");
+        additionalAbilityItem.textContent = '| '
+
+        loggedInUser.userAbilityDetails.aditionalAbilities.forEach((ability) => {
+            additionalAbilityItem.textContent += `${ability.ability}: ${ability.score} | `;
+        });
+
+        additionalAbilitiesSection.appendChild(additionalAbilitiesTitle);
+        additionalAbilitiesSection.appendChild(additionalAbilityItem);
+
+        // Append all sections to the main container
+        container.appendChild(userClassName);
+        container.appendChild(classDetails);
+        container.appendChild(userRaceName);
+        container.appendChild(raceDetails);
+        container.appendChild(abilitiesSection);
+        container.appendChild(additionalAbilitiesSection);
+
+        // Append container to root
+        document.body.appendChild(container);
+    }
+}
+
+// Initial function to first screen.
+loadFirstScreen();
